@@ -1,0 +1,10 @@
+This script takes a POST request from stdin and returns a form with the action
+set to the POST request's URL and hidden form fields for all of the parameters
+in the body.
+
+$ ruby xsrfify.rb -h
+Usage: ./xsrfify.rb [options]
+    -n, --newlines                   Use \n as line delimiter when parsing the POST request instead of \r\n
+    -f, --full-page                  Print a full HTML page ready for XSRF instead of just the form
+    -h, --help                       Show this help
+
