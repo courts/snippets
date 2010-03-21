@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+
+##############################################################
+#                                                            #
+# Written by Patrick Hof <courts@offensivethinking.org>      #
+# http://www.offensivethinking.org                           #
+#                                                            #
+# This software is licensed under the Creative               #
+# Commons CC0 1.0 Universal License.                         #
+# To view a copy of this license, visit                      #
+# http://creativecommons.org/publicdomain/zero/1.0/legalcode #
+#                                                            #
+##############################################################
+
+# == Introduction ==
+#
+# "alarm" is a simple command line script to add a new message which should pop
+# up at a certain time to a remind file. I'm starting remind with the following
+# command line in my Window Manager's (XMonad) startup script:
+#
+# remind -z '-k zenity --info --text="%s" &' ~/.alarm_reminders
+#
+# This puts remind in 'daemon' mode, periodically checking the file
+# ~/.alarm_reminders for new entries. It will then run Zenity to pop up a
+# message box at due time.
+#
+# Messages can either have an absolute or relative time. Examples:
+#
+# - 10:00 My Message
+# - 10s My Message
+# - 30m My Message
+# - 1h My Message
+#
+#
+# == Example ==
+# 
+# Writing
+#
+# alarm '30m Dinner is ready'
+#
+# on Dec 27, 2009 at 12:00 o'clock will add the entry
+#
+# REM Dec 27 2009 AT 12:30 MSG %3 %"dinner is ready%"%
+#
+#
+# == Requirements ==
+#
+# - Zenity http://live.gnome.org/Zenity
+# - Remind http://www.roaringpenguin.com/products/remind
+
+ALARMS = "~/.alarm_reminders"
+FACTOR = {"s" => 0, "m" => 1, "h" => 2}
+NOW = Time.now
+
+case ARGV[0]
+when /^\s*(\d{1,2}:\d{2})\s*(.*)\s*$/
+  time, message = $1, $2
+when /^\s*(\d+)([smh])\s*(.*)\s*$/
+  time = (NOW + ($1.to_i * (60 ** FACTOR[$2]))).strftime("%H:%M")
+  message = $3
+else
+  system("zenity --info --text=\"Wrong format: #{ARGV[0]}\"")
+  exit 1
+end
+
+unless message.empty?
+  File.open(ALARMS, "a") do |f|
+    f.write("REM #{NOW.strftime("%b")} #{NOW.day} #{NOW.year} AT #{time} MSG %3 %\"#{message}%\"%\n")
+  end
+else
+  system("zenity --info --text=\"Empty Message: #{ARGV[0]}\"")
+  exit 1
+end
