@@ -15,12 +15,18 @@
 # This script takes a POST request from stdin and returns a form with the action
 # set to the POST request's URL and hidden form fields for all of the parameters
 # in the body.
+#
+# Be aware of a common pitfall: If you have an element with the name or id
+# "submit" in your post data (and the chances are high), then the JavaScript
+# submit() function won't work anymore. Just use the "-d" option or delete the
+# element from the HTML source manually.
 require 'cgi'
 require 'optparse'
 
 options = {
   :delimiter => "\r\n",
-  :full => false
+  :full => false,
+  :delsubmit => false
 }
 OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} [options]"
@@ -30,6 +36,9 @@ OptionParser.new do |opts|
   end
   opts.on("-f", "--full-page", "Print a full HTML page ready for XSRF instead of just the form") do
     options[:full] = true
+  end
+  opts.on("-d", "--delete-submit", 'Automatically delete parameters with the name "submit"') do
+    options[:delsubmit] = true
   end
   opts.on("-h", "--help", "Show this help") do
     puts opts
@@ -67,7 +76,9 @@ if body
   data = CGI.unescape(body.chomp).split("&").map { |x| x.split("=") }
   puts %Q(    <form action="#{url}" id="submitform" method="post">)
   data.each do |i|
-    puts %Q(      <input type="hidden" name="#{i[0]}" value="#{i[1]}">)
+    unless (options[:delsubmit] && i[0] == "submit")
+      puts %Q(      <input type="hidden" name="#{i[0]}" value="#{i[1]}">)
+    end
   end
   puts "    </form>"
   puts html_footer if options[:full]
