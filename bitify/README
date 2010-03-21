@@ -1,0 +1,6 @@
+"bitify" is a simple command line script to shorten a URL with http://bit.ly.
+It screen-scrapes the web site, so you don't need an account.
+
+Usage example:
+
+$ ./bitify 'http://www.example.com'
